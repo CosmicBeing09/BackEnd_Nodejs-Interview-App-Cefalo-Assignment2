@@ -59,7 +59,7 @@ app.get('/api/file/:lang', (req, res) => {
     const file = req.body;
     console.log('dirname',__dirname);
     console.log(`file.lang: ${file.lang}`, `file.code:${file.code}`);
-    RunnerManager.run(file.lang, file.code, res);
+    RunnerManager.run(file.lang, file.code, file.input, res);
   });
 
 
@@ -75,9 +75,13 @@ io.on('connection', (socket) => {
         //console.log(user.name,user.room,user.role);
 
         socket.emit('message', {user : 'system', text: `${user.name}, welcome to the room ${user.room}`, key:user.key});
-        socket.emit('history',messages);
+
+        const roomMessages = messages.filter(dataum => dataum.room === room);
+        socket.emit('history',roomMessages);
+
         socket.broadcast.to(user.room).emit('message', {user : 'system', text: `${user.name}, welcome to the room ${user.room}`});
         
+        io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
         socket.join(user.room);
 
         callback();
@@ -87,7 +91,7 @@ io.on('connection', (socket) => {
         const user = getUser(socket.id);
         //console.log(user);
         
-        let temp = {user : user.name, text : message};
+        let temp = {user : user.name, room : user.room, text : message};
         messages.push(temp);
 
         io.to(user.room).emit('message', {user: user.name, text: message});
@@ -110,7 +114,7 @@ io.on('connection', (socket) => {
 
         if(user) {
           io.to(user.room).emit('message', { user: 'system', text: `${user.name} has left.` });
-          //io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room)});
+          io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room)});
         }
     });
 })

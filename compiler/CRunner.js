@@ -12,16 +12,17 @@ class CRunner extends Runner {
     this.defaultfile = 'Hello.c';
   }
  
-  run(file, directory, filename, extension, callback) {
+  run(file, directory, filename, extension, input, callback) {
     if (extension.toLowerCase() !== '.c') {
       console.log(`${file} is not a c file.`);
       return;
     }
-    this.compile(file, directory, filename, callback);
+    this.compile(file, directory, filename, input, callback);
   }
  
   // compile a c file
-  compile(file, directory, filename, callback) {
+  compile(file, directory, filename, input, callback) {
+    
     // set working directory for child_process
     const options = { cwd: directory };
     // ['codec.c', '-o','codec.out']
@@ -42,20 +43,24 @@ class CRunner extends Runner {
     });
     compiler.on('close', (data) => {
       if (data === 0) {
-        this.execute(directory, filename, options, callback);
+        this.execute(directory, filename, options, input, callback);
       }
     });
   }
  
   // execute the compiled file
-  execute(directory, filename, options, callback) {
+  execute(directory, filename, options, input, callback) {
     const cmdRun = path.join(directory, `${filename}.out`);
- 
+  
+    console.log(input);
+    
     // const executor = spawn('./Hello.out', [], options);
     const executor = spawn(cmdRun, [], options);
 
-    executor.stdin.write("5 1 2 3 4 5");
+    if(input !== null){
+    executor.stdin.write(input);
     executor.stdin.end();
+    }
 
     executor.stdout.on('data', (output) => {
       console.log(String(output));

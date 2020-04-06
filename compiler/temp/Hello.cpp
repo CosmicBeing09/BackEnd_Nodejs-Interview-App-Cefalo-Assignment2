@@ -1,7 +1,9 @@
-#include <stdio.h>
+#include <iostream>
+using namespace std;
+ 
+// main() is where program execution begins.
 int main()
 {
-    int a;
-    scanf("%d",&a);    
-    printf("%d",a);
+    cout << "Hello CPP!\n"; // prints Hello CPP!
+    return 0;
 }

@@ -27,7 +27,8 @@ function Factory() {
 }
  
 module.exports = {
-  run(lang, code, res) {
+  run(lang, code, input, res) {
+    
     const factory = new Factory();
     const runner = factory.createRunner(lang.toLowerCase());
  
@@ -40,7 +41,7 @@ module.exports = {
    // console.log(`extension: ${extension}`);
  
     FileApi.saveFile(file, code, () => {
-      runner.run(file, directory, filename, extension, (status, message) => {
+      runner.run(file, directory, filename, extension, input, (status, message) => {
         const result = {
           status,
           message,
