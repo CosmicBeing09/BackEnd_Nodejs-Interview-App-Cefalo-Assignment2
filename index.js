@@ -13,6 +13,8 @@ const server = http.createServer(app);
 const io = socketio(server);
 
 let messages = [];
+let codeHistory = new Map();
+let questionHistory = new Map();
 
 app.use(cors());
 app.use(router);
@@ -78,8 +80,11 @@ io.on('connection', (socket) => {
 
         const roomMessages = messages.filter(dataum => dataum.room === room);
         socket.emit('history',roomMessages);
+        
+        socket.emit('codeHistory',codeHistory.get(user.room));
+        socket.emit('questionHistory',questionHistory.get(user.room));
 
-        socket.broadcast.to(user.room).emit('message', {user : 'system', text: `${user.name}, welcome to the room ${user.room}`});
+        socket.broadcast.to(user.room).emit('message', {user : 'system', text: `${user.name} has joined`});
         
         io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
         socket.join(user.room);
@@ -101,15 +106,26 @@ io.on('connection', (socket) => {
 
     socket.on('code', (message, callback) => {
         const user = getUser(socket.id);
-        //console.log(user);
-        
+
         io.to(user.room).emit('code', {code: message});
 
+        codeHistory.set(user.room, message);
+        
         callback();
     });
 
+    socket.on('question', (message, callback) => {
+      const user = getUser(socket.id);
+      
+      io.to(user.room).emit('question', {question : message});
+
+      questionHistory.set(user.room, message);
+
+      callback();
+  });
+
     socket.on('disconnect', () => {
-        console.log('User has left!!!');
+        console.log('user has left!!!');
         const user = removeUser(socket.id);
 
         if(user) {

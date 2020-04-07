@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
 const Runner = require('./Runner');
-var sb = '';
+
  
 class JavaRunner extends Runner {
   defaultFile() {
@@ -12,15 +12,15 @@ class JavaRunner extends Runner {
     this.defaultfile = 'Hello.java';
   }
  
-  run(file, directory, filename, extension, callback) {
+  run(file, directory, filename, extension,input, callback) {
     if (extension.toLowerCase() !== '.java') {
       console.log(`${file} is not a java file.`);
     }
-    this.compile(file, directory, filename, callback);
+    this.compile(file, directory, filename,input, callback);
   }
  
   // compile java source file
-  compile(file, directory, filename, callback) {
+  compile(file, directory, filename,input, callback) {
     // set working directory for child_process
     const options = { cwd: directory };
     // var compiler = spawn('javac', ['CodeJava.java']);
@@ -36,20 +36,22 @@ class JavaRunner extends Runner {
     });
     compiler.on('close', (data) => {
       if (data === 0) {
-        this.execute(filename, options, callback);
+        this.execute(filename, options,input, callback);
       }
     });
   }
  
   // execute the compiled class file
-  execute(filename, options, callback) {
+  execute(filename, options,input, callback) {
     const argsRun = [];
     argsRun[0] = filename;
     const executor = spawn('java', argsRun, options);
 
-    executor.stdin.write("5 1 2 3 4 5");
-    executor.stdin.end();
-
+    if(input !== null){
+      executor.stdin.write(input);
+      executor.stdin.end();
+      }
+    var sb = '';
     executor.stdout.on('data', (output) => {
      // console.log(String(output));
       sb = sb.concat(output);
