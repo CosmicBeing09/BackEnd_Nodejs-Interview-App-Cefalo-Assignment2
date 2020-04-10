@@ -11,14 +11,14 @@ class JavaScriptRunner extends Runner {
     this.defaultfile = 'Hello.js';
   }
  
-  run(file, directory, filename, extension, callback) {
+  run(file, directory, filename, extension, input, callback) {
     if (extension.toLowerCase() !== '.js') {
       console.log(`${file} is not a javascript file.`);
     }
-    this.execute(file, directory, callback);
+    this.execute(file, directory, input, callback);
   }
  
-  execute(file, directory, callback) {
+  execute(file, directory, input, callback) {
     // set working directory for child_process
     const options = { cwd: directory };
     const argsRun = [];
@@ -27,9 +27,17 @@ class JavaScriptRunner extends Runner {
     console.log(`argsRun: ${argsRun}`);
  
     const executor = spawn('node', argsRun, options);
+
+    if(input !== null){
+      executor.stdin.write(input);
+      executor.stdin.end();
+      }
+    var sb = '';
+
     executor.stdout.on('data', (output) => {
       console.log(String(output));
-      callback('0', String(output)); // 0, no error
+      sb = sb.concat(output);
+      //callback('0', String(output)); // 0, no error
     });
     executor.stderr.on('data', (output) => {
       console.log(`stderr: ${String(output)}`);
@@ -37,6 +45,7 @@ class JavaScriptRunner extends Runner {
     });
     executor.on('close', (output) => {
       this.log(`stdout: ${output}`);
+      callback('0', sb);
     });
   }
  

@@ -11,14 +11,14 @@ class PythonRunner extends Runner {
     this.defaultfile = 'Hello.py';
   }
  
-  run(file, directory, filename, extension, callback) {
+  run(file, directory, filename, extension, input, callback) {
     if (extension.toLowerCase() !== '.py') {
       console.log(`${file} is not a python file.`);
     }
-    this.execute(file, directory, callback);
+    this.execute(file, directory,input, callback);
   }
  
-  execute(file, directory, callback) {
+  execute(file, directory,input, callback) {
     // set working directory for child_process
     const options = { cwd: directory };
     const argsRun = [];
@@ -26,15 +26,24 @@ class PythonRunner extends Runner {
     console.log(`options: ${options}`);
     console.log(`argsRun: ${argsRun}`);
     const executor = spawn('python', argsRun, options);
+
+    if(input !== null){
+      executor.stdin.write(input);
+      executor.stdin.end();
+      }
+  
+      var sb = '';
     executor.stdout.on('data', (output) => {
       console.log(String(output));
-      callback('0', String(output)); // 0, no error
+      sb = sb.concat(output);
+      //callback('0', String(output)); // 0, no error
     });
     executor.stderr.on('data', (output) => {
       console.log(`stderr: ${String(output)}`);
       callback('2', String(output)); // 2, execution failure
     });
     executor.on('close', (output) => {
+      callback('0', sb); //0, no error
       this.log(`stdout: ${output}`);
     });
   }

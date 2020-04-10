@@ -62,16 +62,21 @@ class CRunner extends Runner {
     executor.stdin.end();
     }
 
+    var sb = '';
+
     executor.stdout.on('data', (output) => {
-      console.log(String(output));
-      callback('0', String(output)); // 0, no error
+     // console.log(String(output));
+      sb = sb.concat(output);
+      //callback('0', String(output)); // 0, no error
     });
+    
     executor.stderr.on('data', (output) => {
       console.log(`stderr: ${String(output)}`);
       callback('2', String(output)); // 2, execution failure
     });
     executor.on('close', (output) => {
       this.log(`stdout: ${output}`);
+      callback('0', sb);
     });
   }
  

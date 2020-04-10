@@ -6,7 +6,7 @@ const RunnerManager = require('./compiler/RunnerManager');
 const socketio = require('socket.io');
 const cors = require('cors');
 const router = require('./router');
-const {addUser, getUser , getUsersInRoom, removeUser} = require('./users');
+const {addUser, getUser , getUsersInRoom, removeUser,removeRoomData} = require('./users');
 
 const app = express();
 const server = http.createServer(app);
@@ -87,6 +87,7 @@ io.on('connection', (socket) => {
         socket.broadcast.to(user.room).emit('message', {user : 'system', text: `${user.name} has joined`});
         
         io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
+        socket.emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
         socket.join(user.room);
 
         callback();
@@ -126,12 +127,26 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log('user has left!!!');
-        const user = removeUser(socket.id);
 
+        const exitedUser = getUser(socket.id);
+
+        if(exitedUser !== undefined){
+        if(exitedUser.role === 'admin'){
+          
+          removeRoomData(exitedUser.name, exitedUser.room);
+          const user = removeUser(socket.id);
+          io.to(user.room).emit('message', { user: 'system', text: `${user.name} has left.` });
+          io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room)});
+        }
+        
+        else{
+        const user = removeUser(socket.id);
         if(user) {
           io.to(user.room).emit('message', { user: 'system', text: `${user.name} has left.` });
           io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room)});
         }
+      }
+    }
     });
 })
 

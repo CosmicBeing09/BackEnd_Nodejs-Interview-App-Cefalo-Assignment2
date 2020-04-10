@@ -12,16 +12,16 @@ class CppRunner extends Runner {
     this.defaultfile = 'Hello.cpp';
   }
  
-  run(file, directory, filename, extension, callback) {
+  run(file, directory, filename, extension,input, callback) {
     if (extension.toLowerCase() !== '.cpp') {
       console.log(`${file} is not a cpp file.`);
       return;
     }
-    this.compile(file, directory, filename, callback);
+    this.compile(file, directory, filename,input, callback);
   }
  
   // compile a c file
-  compile(file, directory, filename, callback) {
+  compile(file, directory, filename, input, callback) {
     // set working directory for child_process
     const options = { cwd: directory };
     // ['codec.c', '-o','codec.out']
@@ -42,21 +42,28 @@ class CppRunner extends Runner {
     });
     compiler.on('close', (data) => {
       if (data === 0) {
-        this.execute(directory, filename, options, callback);
+        this.execute(directory, filename, options, input, callback);
       }
     });
   }
  
   // execute the compiled file
-  execute(directory, filename, options, callback) {
+  execute(directory, filename, options, input, callback) {
     const cmdRun = path.join(directory, `${filename}.out`);
  
     // const executor = spawn('./Hello.out', [], options);
     const executor = spawn(cmdRun, [], options);
 
+    if(input !== null){
+      executor.stdin.write(input);
+      executor.stdin.end();
+      }
+    var sb = '';
+
     executor.stdout.on('data', (output) => {
       console.log('output: '+ String(output));
-      callback('0', String(output)); // 0, no error
+      sb = sb.concat(output);
+     // callback('0', String(output)); // 0, no error
     });
     executor.stderr.on('data', (output) => {
       console.log(`stderr: ${String(output)}`);
@@ -64,6 +71,7 @@ class CppRunner extends Runner {
     });
     executor.on('close', (output) => {
       this.log(`stdout close : ${output}`);
+      callback('0', sb); //0, no error
     });
   }
  

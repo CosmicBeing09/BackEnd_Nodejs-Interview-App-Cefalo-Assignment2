@@ -18,7 +18,7 @@ const addUser = ({id, name, room, role, key}) => {
 
     
     if(role === 'contastant'){
-    const existingContastant = users.find((user) => user.role === 'contastant');
+    const existingContastant = users.find((user) => user.role === 'contastant' && user.room === room);
 
     if(existingContastant){
         return { 
@@ -28,6 +28,12 @@ const addUser = ({id, name, room, role, key}) => {
 }
     
     if(role === 'admin'){
+      const roomExist = roomData.find((user) => user.room === room);
+      if(roomExist){
+        return { 
+            error : 'Room already created with the same name!!'
+        } 
+      }
       const key = shortid.generate();
       const user = {id, name , room, role, key};
       users.push(user);
@@ -55,10 +61,16 @@ const removeUser = (id) => {
     if(index !== -1) return users.splice(index, 1)[0];
 };
 
+const removeRoomData = (name,room) => {
+    const index = roomData.findIndex((user) => user.name === name && user.room === room);
+    if(index !== -1) return roomData.splice(index, 1)[0];
+};
+
+
 const getUser = (id) => { 
     return users.find((user) => user.id === id)
 };
 
 const getUsersInRoom = (room) => users.filter((user) => user.room === room);
 
-module.exports = {addUser, getUser , getUsersInRoom, removeUser};
+module.exports = {addUser, getUser , getUsersInRoom, removeUser,removeRoomData};
