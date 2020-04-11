@@ -40,7 +40,7 @@ class PythonRunner extends Runner {
     });
     executor.stderr.on('data', (output) => {
       console.log(`stderr: ${String(output)}`);
-      callback('2', String(output)); // 2, execution failure
+      callback('2', 'Execution Error: '+ String(output)); // 2, execution failure
     });
     executor.on('close', (output) => {
       callback('0', sb); //0, no error

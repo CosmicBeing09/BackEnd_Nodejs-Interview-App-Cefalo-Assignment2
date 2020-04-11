@@ -32,7 +32,7 @@ class JavaRunner extends Runner {
     });
     compiler.stderr.on('data', (data) => {
       console.log(`compile-stderr: ${String(data)}`);
-      callback('1', String(data)); // 1, compile error
+      callback('1','Compilation error: '+ String(data)); // 1, compile error
     });
     compiler.on('close', (data) => {
       if (data === 0) {
@@ -59,11 +59,12 @@ class JavaRunner extends Runner {
     });
     executor.stderr.on('data', (output) => {
       console.log(`stderr: ${String(output)}`);
-      callback('2', String(output)); // 2, execution failure
+      callback('2', 'Execution Error: '+ String(output)); // 2, execution failure
     });
     executor.on('close', (output) => {
       this.log('sb: '+ sb);
       callback('0', sb); //0, no error
+      sb = '';
       this.log(`stdout: ${output}`);
     });
   }
